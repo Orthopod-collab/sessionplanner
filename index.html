@@ -19,17 +19,21 @@
   header{background:rgba(10,12,20,.85);backdrop-filter:saturate(140%) blur(6px);color:#fff;padding:18px;font-weight:800;letter-spacing:.3px;font-size:1.05rem}
   .layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 56px)}
   .side{border-right:1px solid var(--border);background:rgba(14,18,30,.7);backdrop-filter:blur(6px);padding:12px;display:grid;align-content:start;gap:12px}
-  .tab{border:1px solid var(--border);background:#141a2a;color:#d4dcf2;padding:12px;border-radius:12px;font-weight:800;cursor:pointer;text-align:left;transition:.15s}
+
+  /* horizontal tab bar */
+  .tabbar{display:flex;gap:12px;align-items:center}
+  .tab{border:1px solid var(--border);background:#141a2a;color:#d4dcf2;padding:12px;border-radius:12px;font-weight:800;cursor:pointer;text-align:center;transition:.15s;flex:1}
   .tab:hover{border-color:#314166;background:#171f33}
   .tab.active{background:linear-gradient(180deg,#1b1a32,#141b2b);color:#fff;border-color:#3a2f71;box-shadow:0 0 0 2px rgba(124,58,237,.25) inset}
+
   main{padding:16px}
   .card{background:linear-gradient(180deg,var(--card),#0f1523);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,.25)}
   h2{margin:0 0 10px;font-size:1rem;font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
   .stack{display:grid;gap:12px}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   label{display:grid;gap:6px;font-size:.95rem;font-weight:800;color:#dbe5ff}
-  select,textarea,input[type="text"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:#0e1524;color:#e8ebf1;font-size:1rem;outline:none;transition:.15s}
-  select:focus,textarea:focus,input[type="text"]:focus{border-color:#3b82f6;box-shadow:0 0 0 4px var(--ring)}
+  select,textarea,input[type="text"],input[type="password"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:#0e1524;color:#e8ebf1;font-size:1rem;outline:none;transition:.15s}
+  select:focus,textarea:focus,input[type="text"]:focus,input[type="password"]:focus{border-color:#3b82f6;box-shadow:0 0 0 4px var(--ring)}
   ::placeholder{color:#7f8698}
   .btn{padding:12px 16px;border-radius:12px;border:0;background:var(--grad);color:#fff;font-weight:900;cursor:pointer;transition:.15s}
   .btn:hover{filter:brightness(1.05)}
@@ -37,7 +41,7 @@
   .btn.secondary:hover{background:#152038}
   .pill{font-size:.78rem;padding:6px 10px;background:var(--pill);color:var(--pill-text);border:1px solid #2b3654;border-radius:999px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media (max-width:900px){.layout{grid-template-columns:1fr}.side{grid-auto-flow:column;grid-auto-columns:1fr;overflow:auto}.grid2{grid-template-columns:1fr}}
+  @media (max-width:900px){.grid2{grid-template-columns:1fr}}
   .chips{display:flex;gap:8px;flex-wrap:wrap;padding:8px;border:1px solid var(--border);border-radius:12px;background:#0e1524;min-height:52px}
   .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;background:var(--chip);border:1px solid var(--chip-border);border-radius:999px;font-size:.9rem;color:#dce4ff}
   .chip .x{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;background:#212a46;border-radius:999px;font-weight:900;cursor:pointer;color:#aab8ff}
@@ -50,7 +54,6 @@
   .grp:hover{background:var(--hover);color:var(--accent);box-shadow:inset 0 0 0 999px var(--grad-soft)}
   .grp .caret{display:inline-block;width:0;height:0;margin-right:10px;border-left:6px solid #a8b1c4;border-top:5px solid transparent;border-bottom:5px solid transparent;transform:rotate(-90deg);transition:.2s}
   .grp.open .caret{border-left-color:#c084fc;transform:rotate(0deg)}
-  /* Keep TBODY layout to preserve column alignment; hide rows when collapsed  */
   .subrows tr{display:none}
   .subrows.open tr{display:table-row}
   .actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -65,6 +68,23 @@
   .assistant-bubble:after{content:"";position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);border:10px solid transparent;border-top-color:rgba(192,132,252,.95)}
   .assistant-footer{display:flex;gap:8px;justify-content:center}
   .mini{font-size:.8rem;padding:6px 8px;border-radius:10px;border:1px solid var(--border);background:#10182a;color:#dbe5ff;cursor:pointer}
+
+  /* Ask AI row */
+  .assistant-ask{display:flex;gap:8px;margin-top:6px}
+  .assistant-ask input{flex:1}
+  .ai-answer{margin-top:8px;border:1px solid var(--border);background:#10182a;border-radius:12px;padding:10px 12px}
+
+  /* Mobile: keep tabs in one row above the emoji; no sideways scroll */
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr}
+    .side{
+      grid-auto-flow:row;
+      grid-auto-columns:unset;
+      overflow:visible;
+      gap:12px;
+    }
+  }
+.assistant-key{display:none !important}
 </style>
 </head>
 <body>
@@ -72,8 +92,10 @@
 
 <div class="layout">
   <aside class="side">
-    <button class="tab active" data-tab="builderTab">Builder</button>
-    <button class="tab" data-tab="matcherTab">Requirement Matcher</button>
+    <div class="tabbar">
+      <button class="tab active" data-tab="builderTab">Builder</button>
+      <button class="tab" data-tab="matcherTab">Requirement Matcher</button>
+    </div>
 
     <div class="assistant">
       <div class="assistant-bubble" id="assistBubble">Hi! Hover any control for tips.</div>
@@ -128,6 +150,17 @@
           </g>
         </svg>
       </div>
+
+      <!-- Ask AI row -->
+      <div class="assistant-ask">
+        <input id="aiInput" type="text" placeholder="Ask the assistant…" />
+        <button class="mini" id="askAI">Ask</button>
+      </div>
+      <div id="aiAnswer" class="ai-answer">I can help with list planning, keywords, etc.</div>
+
+      <!-- local key setter (dev only). Do NOT hardcode keys in production. -->
+      
+
       <div class="assistant-footer">
         <button class="mini" id="assistTipBuild">How to build</button>
         <button class="mini" id="assistTipMatch">How to match</button>
@@ -212,7 +245,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  // OPTIONAL: if you deploy a proxy Cloud Function, put its URL here
+  window.OPENAI_PROXY_URL = '';
 
   const firebaseConfig = {
     apiKey: "AIzaSyCQW7EokI7uns6X9jxQnvIWX0SvDU68218",
@@ -226,6 +262,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  enableIndexedDbPersistence(db).catch(err => console.warn('Persistence error:', err?.code || err));
 
   const $ = (q, r=document) => r.querySelector(q);
   const $$ = (q, r=document) => Array.from(r.querySelectorAll(q));
@@ -235,7 +272,7 @@
   let editId = null;
   let chipValues = [];
 
-  /* ---------- Assistant logic (no external libs) ---------- */
+  /* ---------- Assistant logic ---------- */
   const bubble = $('#assistBubble');
   const botSvg = $('#botSvg');
   const head = $('#head');
@@ -248,29 +285,13 @@
   const browR = $('#browR');
 
   function showBubble(msg){ bubble.textContent = msg; bubble.classList.add('show'); clearTimeout(showBubble._t); showBubble._t = setTimeout(()=> bubble.classList.remove('show'), 2100); }
-
   function setMouth(path){ mouth.setAttribute('d', path); }
   function setBrows(l, r){ browL.setAttribute('d', l); browR.setAttribute('d', r); }
+  function faceIdle(){ setMouth('M74 132 Q100 140 126 132'); setBrows('M60 90 Q78 80 96 86','M104 86 Q122 80 140 90'); lidL.setAttribute('height','0'); lidR.setAttribute('height','0'); }
+  function faceHappy(){ setMouth('M72 134 Q100 154 128 134 Q100 150 72 134'); setBrows('M58 86 Q78 76 96 82','M104 82 Q122 76 142 86'); }
+  function faceThink(){ setMouth('M84 136 Q100 130 116 136'); setBrows('M60 88 Q80 92 96 88','M104 88 Q120 92 140 88'); }
+  function faceWarn(){ setMouth('M78 134 Q100 126 122 134'); setBrows('M58 90 Q78 98 96 94','M104 94 Q122 98 142 90'); }
 
-  function faceIdle(){
-    setMouth('M74 132 Q100 140 126 132');
-    setBrows('M60 90 Q78 80 96 86','M104 86 Q122 80 140 90');
-    lidL.setAttribute('height','0'); lidR.setAttribute('height','0');
-  }
-  function faceHappy(){
-    setMouth('M72 134 Q100 154 128 134 Q100 150 72 134');
-    setBrows('M58 86 Q78 76 96 82','M104 82 Q122 76 142 86');
-  }
-  function faceThink(){
-    setMouth('M84 136 Q100 130 116 136');
-    setBrows('M60 88 Q80 92 96 88','M104 88 Q120 92 140 88');
-  }
-  function faceWarn(){
-    setMouth('M78 134 Q100 126 122 134');
-    setBrows('M58 90 Q78 98 96 94','M104 94 Q122 98 142 90');
-  }
-
-  // Blink loop
   function blink(){
     lidL.setAttribute('height','0'); lidR.setAttribute('height','0');
     setTimeout(()=>{ lidL.setAttribute('height','30'); lidR.setAttribute('height','30'); }, 60);
@@ -278,7 +299,6 @@
   }
   setInterval(()=>{ blink(); }, 3200 + Math.random()*1200);
 
-  // Pupils track cursor
   document.addEventListener('mousemove', e => {
     const b = botSvg.getBoundingClientRect();
     const cx = b.left + b.width/2, cy = b.top + b.height*0.55;
@@ -292,7 +312,6 @@
     head.setAttribute('transform', `translate(${dx*2},${dy*2})`);
   });
 
-  // Talk animation: cycle mouth path
   let talkTimer = null;
   function talk(msg){
     if(msg) showBubble(msg);
@@ -311,19 +330,39 @@
     setTimeout(()=>{ clearInterval(talkTimer); faceIdle(); }, 1800);
   }
 
-  /* ---------- App logic ---------- */
+  /* ---------- Matching utils (XSS-safe highlight + smarter regex) ---------- */
   function escapeRegExp(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
-  function buildPluralRegex(keyword){
-    const words=String(keyword).trim().split(/\s+/).filter(Boolean);
-    const parts=words.map(w=>{
-      const e=escapeRegExp(w);
-      if(/y$/i.test(w)){const stem=escapeRegExp(w.slice(0,-1));return `(?:${stem}y|${stem}ies)`}
-      if(/(s|x|ch|sh|z)$/i.test(w))return `(?:${e}|${e}es)`;
-      return `(?:${e}|${e}s)`;
+  function tokenPattern(w){
+    const e = escapeRegExp(w);
+    if(/y$/i.test(w)){ const stem = escapeRegExp(w.slice(0,-1)); return `(?:${stem}y|${stem}ies)(?:'s)?`; }
+    if(/(s|x|ch|sh|z)$/i.test(w)) return `(?:${e}|${e}es)(?:'s)?`;
+    return `(?:${e}|${e}s)(?:'s)?`;
+  }
+  function buildSmartRegex(keyword){
+    const words = String(keyword).trim().split(/\s+/).filter(Boolean);
+    if(!words.length) return null;
+    const parts = words.map(tokenPattern);
+    return new RegExp(`\\b${parts.join('[\\s-]+')}\\b`, 'gi');
+  }
+  function highlightKeywords(container, text, regexes){
+    container.textContent = '';
+    if(!text){ container.textContent = 'No text yet.'; return; }
+    const ranges = [];
+    regexes.forEach(re=>{
+      if(!re) return;
+      let m; while((m = re.exec(text))){ ranges.push([m.index, m.index + m[0].length]); if(re.lastIndex === m.index) re.lastIndex++; }
     });
-    return new RegExp(`\\b${parts.join("\\s+")}\\b`,'gi');
+    if(!ranges.length){ container.textContent = text; return; }
+    ranges.sort((a,b)=>a[0]-b[0]);
+    const merged = [];
+    for(const r of ranges){ if(!merged.length || r[0] > merged.at(-1)[1]) merged.push(r); else merged.at(-1)[1] = Math.max(merged.at(-1)[1], r[1]); }
+    let pos = 0; const frag = document.createDocumentFragment();
+    for(const [s,e] of merged){ if(pos < s) frag.appendChild(document.createTextNode(text.slice(pos, s))); const mark = document.createElement('mark'); mark.textContent = text.slice(s, e); frag.appendChild(mark); pos = e; }
+    if(pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+    container.appendChild(frag);
   }
 
+  /* ---------- Chips ---------- */
   function renderChips(){
     const box=$('#chipBox'); const input=$('#chipInput');
     box.innerHTML='';
@@ -349,9 +388,11 @@
   $('#chipInput').addEventListener('blur',addChipFromInput);
   renderChips();
 
+  /* ---------- Table render & grouping ---------- */
   function groupBySpecialty(list){
-    const g={}; list.forEach(m=>{const s=m.specialty||'Applies to All'; g[s] ||= []; g[s].push(m)});
-    return Object.keys(g).sort((a,b)=>a.localeCompare(b)).map(s=>({specialty:s,items:g[s]}));
+    const g={}; list.forEach(m=>{const s=m.specialty||'Applies to All'; (g[s] ||= []).push(m)});
+    const order=(a,b)=> (a==='Applies to All')? -1 : (b==='Applies to All')? 1 : a.localeCompare(b);
+    return Object.keys(g).sort(order).map(s=>({specialty:s,items:g[s]}));
   }
 
   function renderTable(){
@@ -394,6 +435,7 @@
 
     $$('#mapTable button[data-del]').forEach(b=>b.onclick=async e=>{
       e.stopPropagation();
+      if(!confirm('Delete this mapping?')) return;
       await deleteDoc(doc(db,'mappings',b.dataset.del));
       faceWarn(); talk('Deleted.');
     });
@@ -415,19 +457,32 @@
 
   $('#mapFilter')?.addEventListener('input',renderTable);
 
+  /* ---------- Save / Reset ---------- */
   $('#saveMapping').onclick=async()=>{
     const specialty=$('#specialty').value.trim();
     const requirement=$('#requirement').value.trim();
-    const keywords=chipValues.slice();
+    const keywords=Array.from(new Set(chipValues.map(v=>v.trim()).filter(Boolean)));
     if(!specialty||!requirement||!keywords.length){faceWarn(); showBubble('Please complete all fields and add a keyword.'); return}
-    if(editId){
-      await updateDoc(doc(db,'mappings',editId),{specialty,requirement,keywords});
-      editId=null; $('#saveMapping').textContent='Save mapping'; $('#editHint').textContent='';
-    }else{
-      await addDoc(mappingsRef,{specialty,requirement,keywords});
-    }
-    chipValues=[]; renderChips();
-    faceHappy(); talk('Saved!');
+    try{
+      if(editId){
+        await updateDoc(doc(db,'mappings',editId),{specialty,requirement,keywords});
+        editId=null; $('#saveMapping').textContent='Save mapping'; $('#editHint').textContent='';
+        chipValues=[]; renderChips();
+        faceHappy(); talk('Updated!');
+        return;
+      }
+      const existing=mappings.find(m=>m.specialty===specialty && m.requirement===requirement);
+      if(existing){
+        const merged=Array.from(new Set([...(existing.keywords||[]),...keywords]));
+        await updateDoc(doc(db,'mappings',existing.id),{keywords:merged});
+        chipValues=[]; renderChips();
+        faceHappy(); talk('Merged into existing mapping.');
+      }else{
+        await addDoc(mappingsRef,{specialty,requirement,keywords});
+        chipValues=[]; renderChips();
+        faceHappy(); talk('Saved!');
+      }
+    }catch(err){ faceWarn(); showBubble('Save failed'); console.error(err); }
   };
 
   $('#resetForm').onclick=()=>{
@@ -436,11 +491,9 @@
     faceIdle();
   };
 
-  onSnapshot(mappingsRef,snap=>{
-    mappings=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderTable();
-  });
+  onSnapshot(mappingsRef,snap=>{ mappings=snap.docs.map(d=>({id:d.id,...d.data()})); renderTable(); });
 
+  /* ---------- Matcher ---------- */
   function runMatch(){
     const raw=$('#inputText').value;
     if(!raw.trim()){faceWarn(); showBubble('Paste some text first');return}
@@ -449,19 +502,15 @@
     mappings.forEach(m=>{
       const local=[];
       (m.keywords||[]).forEach(k=>{
-        const re=buildPluralRegex(String(k));
-        if(re.test(text)){local.push(k);hits.add(k);re.lastIndex=0}
+        const re=buildSmartRegex(String(k));
+        if(re && re.test(text)){local.push(k);hits.add(k);re.lastIndex=0}
       });
       if(local.length) findings.push({specialty:m.specialty,requirement:m.requirement,hits:local});
     });
     findings.sort((a,b)=>a.specialty.localeCompare(b.specialty)||a.requirement.localeCompare(b.requirement));
-    let highlighted=text;
-    Array.from(hits).sort((a,b)=>b.length-a.length).forEach(k=>{
-      const re=buildPluralRegex(k);
-      highlighted=highlighted.replace(re,m=>`<mark>${m}</mark>`);
-    });
-    $('#highlight').innerHTML=highlighted||'No text yet.';
     $('#matchCount').textContent=`${findings.length} match${findings.length===1?'':'es'}`;
+    const regexes=Array.from(hits).sort((a,b)=>b.length-a.length).map(buildSmartRegex);
+    highlightKeywords($('#highlight'), text, regexes);
     if(!findings.length){$('#results').innerHTML='<span style="opacity:.85">No requirements inferred.</span>'; talk('No matches yet — try adding more keywords.'); return}
     $('#results').innerHTML=findings.map(r=>{
       const h=r.hits.map(x=>`<span class="pill">${x}</span>`).join(' ');
@@ -473,6 +522,7 @@
   $('#runMatch').onclick=runMatch;
   $('#clearText').onclick=()=>{$('#inputText').value='';$('#highlight').textContent='No text yet.';$('#results').textContent='Nothing matched yet.';$('#matchCount').textContent='0 matches'; faceIdle();};
 
+  /* ---------- Tabs ---------- */
   $$('.side .tab').forEach(btn=>btn.onclick=()=>{
     $$('.side .tab').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
@@ -485,8 +535,48 @@
   $('#assistTipBuild').onclick=()=>{ talk('Choose specialty, requirement, add keywords, then Save.'); };
   $('#assistTipMatch').onclick=()=>{ talk('Paste a list description and click Match to infer requirements.'); };
 
-  // Start
-  faceIdle();
+  /* ---------- Ask AI (Gemini) ---------- */
+const GEMINI_KEY = "AIzaSyAu7ptOHao6hcKjxFVeHF8I1siVDp0qc38"; // using your other file's key
+
+async function askOpenAI(q){
+  try {
+    faceThink(); talk('Thinking…');
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}` , {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: q }]}]
+      })
+    });
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join(' ').trim();
+    if (res.ok && text) {
+      $('#aiAnswer').textContent = text;
+      faceHappy();
+    } else {
+      console.error('Gemini error:', data);
+      $('#aiAnswer').textContent = 'AI error.';
+      faceWarn();
+    }
+  } catch (err) {
+    console.error('Fetch error:', err);
+    $('#aiAnswer').textContent = 'Fetch error: ' + err.message;
+    faceWarn();
+  }
+}
+// Rebind the button with an inline onclick to avoid duplicate listeners with an inline onclick to avoid duplicate listeners
+const askBtn = document.getElementById('askAI');
+if (askBtn) {
+  askBtn.replaceWith(askBtn.cloneNode(true));
+  document.getElementById('askAI').addEventListener('click', ()=>{
+    const q = $('#aiInput').value.trim();
+    if(!q){ showBubble('Type a question'); return; }
+    askOpenAI(q);
+  });
+}
+
+// Start
+faceIdle();
 </script>
 </body>
 </html>
