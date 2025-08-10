@@ -5,63 +5,153 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Surgical Session Planner</title>
 <style>
-  body { background: #f9fafb; color: #111827; font-family: sans-serif; margin: 0; padding: 0; }
-  header { padding: 16px; background: #1f2937; color: #fff; font-size: 1.2rem; font-weight: bold; }
-  .app { display: flex; flex-wrap: wrap; gap: 14px; padding: 16px; }
-  nav { display: flex; flex-direction: column; gap: 8px; }
-  nav button { padding: 10px; border: none; border-radius: 6px; background: #e5e7eb; color: #111827; cursor: pointer; transition: background 0.2s; font-size: 1rem; }
-  nav button.active, nav button:hover { background: #2563eb; color: white; }
-  main { flex: 1; min-width: 280px; background: #fff; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-  label { display: block; margin-top: 12px; font-size: 0.9rem; font-weight: 500; }
-  select, textarea { width: 100%; padding: 8px; margin-top: 4px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; color: #111827; font-size: 0.95rem; }
-  textarea { min-height: 80px; }
-  .btn { padding: 10px; border-radius: 6px; border: none; background: #2563eb; color: white; cursor: pointer; font-size: 1rem; margin-top: 12px; }
-  .btn:hover { background: #1d4ed8; }
-  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9rem; }
-  th, td { border-bottom: 1px solid #e5e7eb; padding: 8px; text-align: left; vertical-align: top; }
-  mark { background: #fde047; padding: 0 2px; border-radius: 2px; }
-  @media (max-width: 700px) {
-    .app { flex-direction: column; }
-    nav { flex-direction: row; overflow-x: auto; }
-    nav button { flex: 1; min-width: 120px; }
+  :root{
+    --bg1:#1a1f2d;
+    --bg2:#221b36;
+    --bg3:#1e2940;
+    --card:#121825;
+    --text:#e8ebf1;
+    --muted:#a8b1c4;
+    --border:#24304a;
+    --head:#151c2b;
+    --pill:#1c2438;
+    --pill-text:#d6dcff;
+    --chip:#1d2740;
+    --chip-border:#2b3858;
+    --grad:linear-gradient(90deg,#c084fc 0%,#8b5cf6 50%,#60a5fa 100%);
+    --grad-soft:linear-gradient(135deg, rgba(192,132,252,.15), rgba(96,165,250,.15));
+    --hover:#202a42;
+    --accent:#c084fc;
+    --accent2:#60a5fa;
+    --ring:rgba(139,92,246,.35);
+    --hit:#312e81;
+    --hit-text:#c7d2fe;
   }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial}
+  header{background:rgba(10,12,20,.85);backdrop-filter:saturate(140%) blur(6px);color:#fff;padding:18px;font-weight:800;letter-spacing:.3px;font-size:1.05rem}
+  .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px)}
+  .side{border-right:1px solid var(--border);background:rgba(14,18,30,.7);backdrop-filter:blur(6px);padding:10px;display:grid;align-content:start;gap:10px}
+  .tab{border:1px solid var(--border);background:#141a2a;color:#d4dcf2;padding:12px;border-radius:12px;font-weight:800;cursor:pointer;text-align:left;transition:.15s}
+  .tab:hover{border-color:#314166;background:#171f33}
+  .tab.active{background:linear-gradient(180deg,#1b1a32,#141b2b);color:#fff;border-color:#3a2f71;box-shadow:0 0 0 2px rgba(124,58,237,.25) inset}
+  main{padding:16px}
+  .card{background:linear-gradient(180deg,var(--card),#0f1523);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,.25)}
+  h2{margin:0 0 10px;font-size:1rem;font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stack{display:grid;gap:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  label{display:grid;gap:6px;font-size:.95rem;font-weight:800;color:#dbe5ff}
+  select,textarea,input[type="text"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:#0e1524;color:var(--text);font-size:1rem;outline:none;transition:.15s}
+  select:focus,textarea:focus,input[type="text"]:focus{border-color:#3b82f6;box-shadow:0 0 0 4px var(--ring)}
+  ::placeholder{color:#7f8698}
+  .btn{padding:12px 16px;border-radius:12px;border:0;background:var(--grad);color:#fff;font-weight:900;cursor:pointer;transition:.15s}
+  .btn:hover{filter:brightness(1.05)}
+  .btn.secondary{background:#10182a;border:1px solid var(--border)}
+  .btn.secondary:hover{background:#152038}
+  .pill{font-size:.78rem;padding:6px 10px;background:var(--pill);color:var(--pill-text);border:1px solid #2b3654;border-radius:999px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:900px){.layout{grid-template-columns:1fr}.side{grid-auto-flow:column;grid-auto-columns:1fr;overflow:auto}.grid2{grid-template-columns:1fr}}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;padding:8px;border:1px solid var(--border);border-radius:12px;background:#0e1524;min-height:52px}
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;background:var(--chip);border:1px solid var(--chip-border);border-radius:999px;font-size:.9rem;color:#dce4ff}
+  .chip .x{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;background:#212a46;border-radius:999px;font-weight:900;cursor:pointer;color:#aab8ff}
+  .chip-input{border:none;outline:none;flex:1;min-width:140px;font-size:.95rem;padding:6px;color:var(--text);background:transparent}
+  .table-wrap{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#0f1629}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:.95rem;color:var(--text)}
+  thead th{background:var(--head);padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;color:#d2dbf5;font-weight:900}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  .grp{background:#151d31;font-weight:900;cursor:pointer;transition:background .15s,color .15s,box-shadow .2s}
+  .grp:hover{background:var(--hover);color:var(--accent);box-shadow:inset 0 0 0 999px var(--grad-soft)}
+  .grp .caret{display:inline-block;width:0;height:0;margin-right:10px;border-left:6px solid #a8b1c4;border-top:5px solid transparent;border-bottom:5px solid transparent;transform:rotate(-90deg);transition:.2s}
+  .grp.open .caret{border-left-color:var(--accent);transform:rotate(0deg)}
+  .subrows{display:block;overflow:hidden;max-height:0;transition:max-height .35s ease}
+  .subrows.open{max-height:600px}
+  .actions{white-space:nowrap}
+  mark{background:var(--hit);color:var(--hit-text);border-radius:4px;padding:0 3px}
 </style>
 </head>
 <body>
 <header>Surgical Session Planner</header>
-<div class="app">
-  <nav>
-    <button class="active" data-tab="builder">Builder</button>
-    <button data-tab="matcher">Requirement Matcher</button>
-  </nav>
+
+<div class="layout">
+  <aside class="side">
+    <button class="tab active" data-tab="builderTab">Builder</button>
+    <button class="tab" data-tab="matcherTab">Requirement Matcher</button>
+  </aside>
+
   <main>
-    <section id="builderTab">
-      <label>Specialty
-        <select id="specialty">
-          <option>Applies to All</option><option>ENT</option><option>OMFS</option><option>Orthopaedics</option><option>Plastics</option><option>Neurosurgery</option><option>Renal</option><option>Vascular</option><option>Pain</option><option>Ophthalmology</option><option>Gynaecology</option><option>Urology</option><option>Colorectal</option><option>UGI</option><option>HPB</option><option>Endoscopy</option><option>Anaesthetics</option>
-        </select>
-      </label>
-      <label>Requirement
-        <select id="requirement">
-          <option>Laser RN</option><option>Extra Scrub RN/ODP</option><option>Cell Salvage RN/ODP</option><option>Floater</option><option>Change list order</option><option>In-patient bed</option><option>2 cases in AM</option><option>8 cases in 2 sessions</option><option>No Need for Extra RN</option><option>4 hours duration</option><option>6 hours duration</option><option>Requires ENT nurse</option><option>Implant Review</option></option><option>Extra Robotic RN</option>
-        </select>
-      </label>
-      <label>Keywords (comma-separated)
-        <textarea id="keywords"></textarea>
-      </label>
-      <button class="btn" id="saveMapping">Save mapping</button>
-      <table id="mapTable"><thead><tr><th>Specialty</th><th>Requirement</th><th>Keywords</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    <section id="builderTab" class="stack">
+      <div class="card stack">
+        <h2>Create Mapping</h2>
+        <div class="grid2">
+          <label>Specialty
+            <select id="specialty">
+              <option value="" disabled selected>Select Specialty</option>
+              <option>Applies to All</option><option>ENT</option><option>OMFS</option><option>Orthopaedics</option><option>Plastics</option><option>Neurosurgery</option><option>Renal</option><option>Vascular</option><option>Pain</option><option>Ophthalmology</option><option>Gynaecology</option><option>Urology</option><option>Colorectal</option><option>UGI</option><option>HPB</option><option>Endoscopy</option><option>Anaesthetics</option>
+            </select>
+          </label>
+          <label>Requirement
+            <select id="requirement">
+              <option value="" disabled selected>Select Requirement</option>
+              <option>Laser RN</option><option>Extra Scrub RN/ODP</option><option>Cell Salvage RN/ODP</option><option>Floater</option><option>Change list order</option><option>In-patient bed</option><option>2 cases in AM</option><option>8 cases in 2 sessions</option><option>No Need for Extra RN</option><option>4 hours duration</option><option>6 hours duration</option><option>Requires ENT nurse</option><option>Implant Review</option><option>Extra Robotic RN</option>
+            </select>
+          </label>
+        </div>
+        <div class="stack">
+          <div class="chips" id="chipBox">
+            <input id="chipInput" class="chip-input" type="text" placeholder="Type a keyword and press Enter" />
+          </div>
+          <div class="row">
+            <button class="btn" id="saveMapping">Save mapping</button>
+            <button class="btn secondary" id="resetForm" type="button">Clear</button>
+            <span class="pill" id="editHint"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <div class="row" style="justify-content:space-between">
+          <h2>Mappings</h2>
+          <div class="row">
+            <input type="text" id="mapFilter" placeholder="Filter requirement or keyword" />
+            <span class="pill" id="mapCount">0</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="mapTable">
+            <thead>
+              <tr><th style="width:240px">Specialty</th><th>Requirement / Keywords</th><th style="width:170px">Actions</th></tr>
+            </thead>
+          </table>
+        </div>
+        <span class="pill">Click a specialty to expand or collapse.</span>
+      </div>
     </section>
-    <section id="matcherTab" style="display:none">
-      <label>Paste description
-        <textarea id="inputText"></textarea>
-      </label>
-      <button class="btn" id="runMatch">Match requirements</button>
-      <div id="highlight" style="margin-top:10px;color:#374151">No text yet.</div>
-      <div id="results" style="margin-top:10px;color:#374151">Nothing matched yet.</div>
+
+    <section id="matcherTab" class="stack" style="display:none">
+      <div class="card stack">
+        <h2>Paste or Type Description</h2>
+        <textarea id="inputText" placeholder="Paste clinic/list details here…"></textarea>
+        <div class="row">
+          <button class="btn" id="runMatch">Match requirements</button>
+          <button class="btn secondary" id="clearText" type="button">Clear</button>
+          <span class="pill" id="matchCount">0 matches</span>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Highlighted Text</h2>
+          <div id="highlight">No text yet.</div>
+        </div>
+        <div class="card">
+          <h2>Inferred Requirements</h2>
+          <div id="results">Nothing matched yet.</div>
+        </div>
+      </div>
     </section>
   </main>
 </div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -80,83 +170,174 @@
   const db = getFirestore(app);
 
   const $ = (q, r=document) => r.querySelector(q);
-  const tbody = $('#mapTable tbody');
+  const $$ = (q, r=document) => Array.from(r.querySelectorAll(q));
+  const mappingsRef = collection(db, 'mappings');
 
   let mappings = [];
   let editId = null;
-  const mappingsRef = collection(db, 'mappings');
+  let chipValues = [];
+
+  function escapeRegExp(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+  function buildPluralRegex(keyword){
+    const words=String(keyword).trim().split(/\s+/).filter(Boolean);
+    const parts=words.map(w=>{
+      const e=escapeRegExp(w);
+      if(/y$/i.test(w)){const stem=escapeRegExp(w.slice(0,-1));return `(?:${stem}y|${stem}ies)`}
+      if(/(s|x|ch|sh|z)$/i.test(w))return `(?:${e}|${e}es)`;
+      return `(?:${e}|${e}s)`;
+    });
+    return new RegExp(`\\b${parts.join("\\s+")}\\b`,'gi');
+  }
+
+  function renderChips(){
+    const box=$('#chipBox'); const input=$('#chipInput');
+    box.innerHTML='';
+    chipValues.forEach((v,i)=>{
+      const el=document.createElement('span');
+      el.className='chip';
+      el.innerHTML=`<span>${v}</span><span class="x" data-i="${i}">×</span>`;
+      box.appendChild(el);
+    });
+    box.appendChild(input);
+    $$('.chip .x',box).forEach(x=>x.onclick=()=>{chipValues.splice(parseInt(x.dataset.i,10),1);renderChips()});
+  }
+  function addChipFromInput(){
+    const v=$('#chipInput').value.trim();
+    if(!v)return;
+    v.split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>{if(!chipValues.includes(s))chipValues.push(s)});
+    $('#chipInput').value=''; renderChips();
+  }
+  $('#chipInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===','){e.preventDefault();addChipFromInput()}
+    if(e.key==='Backspace'&&!e.currentTarget.value&&chipValues.length){chipValues.pop();renderChips()}
+  });
+  $('#chipInput').addEventListener('blur',addChipFromInput);
+  renderChips();
+
+  function groupBySpecialty(list){
+    const g={}; list.forEach(m=>{const s=m.specialty||'Applies to All'; g[s] ||= []; g[s].push(m)});
+    return Object.keys(g).sort((a,b)=>a.localeCompare(b)).map(s=>({specialty:s,items:g[s]}));
+  }
 
   function renderTable(){
-    tbody.innerHTML = '';
-    mappings.forEach(m => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${m.specialty}</td><td>${m.requirement}</td><td>${m.keywords.join(', ')}</td><td><button data-edit="${m.id}">Edit</button> <button data-del="${m.id}">Delete</button></td>`;
-      tbody.appendChild(tr);
+    const q=$('#mapFilter')?.value?.trim()?.toLowerCase()||'';
+    let data=mappings.slice();
+    if(q) data=data.filter(m=>(m.requirement||'').toLowerCase().includes(q)||(m.keywords||[]).some(k=>String(k).toLowerCase().includes(q)));
+    $('#mapCount').textContent=data.length;
+    const groups=groupBySpecialty(data);
+    $$('#mapTable tbody').forEach(tb=>tb.remove());
+    const table=$('#mapTable');
+    groups.forEach(grp=>{
+      const headTbody=document.createElement('tbody');
+      const trG=document.createElement('tr');
+      trG.className='grp';
+      trG.dataset.specialty=grp.specialty;
+      trG.innerHTML=`<td colspan="3"><span class="caret"></span>${grp.specialty} (${grp.items.length})</td>`;
+      headTbody.appendChild(trG);
+      table.appendChild(headTbody);
+
+      const sub=document.createElement('tbody');
+      sub.className='subrows';
+      sub.dataset.parent=grp.specialty;
+
+      grp.items.forEach(item=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td></td><td><div style="font-weight:900">${item.requirement}</div><div style="opacity:.85">${(item.keywords||[]).join(', ')}</div></td><td class="actions"><button class="btn secondary" data-edit="${item.id}" type="button">Edit</button> <button class="btn secondary" data-del="${item.id}" type="button">Delete</button></td>`;
+        sub.appendChild(tr);
+      });
+      table.appendChild(sub);
     });
-    tbody.querySelectorAll('button[data-del]').forEach(btn => btn.onclick = async () => {
-      await deleteDoc(doc(db, 'mappings', btn.dataset.del));
+
+    $$('#mapTable .grp').forEach(r=>{
+      r.onclick=()=>{
+        r.classList.toggle('open');
+        const spec=r.dataset.specialty;
+        const sub= $(`#mapTable tbody.subrows[data-parent="${CSS.escape(spec)}"]`);
+        if(sub) sub.classList.toggle('open');
+      };
     });
-    tbody.querySelectorAll('button[data-edit]').forEach(btn => btn.onclick = () => {
-      const m = mappings.find(x => x.id === btn.dataset.edit);
-      $('#specialty').value = m.specialty;
-      $('#requirement').value = m.requirement;
-      $('#keywords').value = m.keywords.join(', ');
-      editId = m.id;
-      $('#saveMapping').textContent = 'Update mapping';
+
+    $$('#mapTable button[data-del]').forEach(b=>b.onclick=async e=>{
+      e.stopPropagation();
+      await deleteDoc(doc(db,'mappings',b.dataset.del));
+    });
+
+    $$('#mapTable button[data-edit]').forEach(b=>b.onclick=e=>{
+      e.stopPropagation();
+      const m=mappings.find(x=>x.id===b.dataset.edit);
+      if(!m)return;
+      $('#specialty').value=m.specialty||'';
+      $('#requirement').value=m.requirement||'';
+      chipValues=(m.keywords||[]).slice();
+      renderChips();
+      editId=m.id;
+      $('#saveMapping').textContent='Update mapping';
+      $('#editHint').textContent=`Editing ${m.specialty} — ${m.requirement}`;
     });
   }
 
-  $('#saveMapping').onclick = async () => {
-    const specialty = $('#specialty').value;
-    const requirement = $('#requirement').value;
-    const keywords = $('#keywords').value.split(',').map(k=>k.trim()).filter(Boolean);
-    if(!keywords.length) return alert('Please add keywords');
+  $('#mapFilter')?.addEventListener('input',renderTable);
+
+  $('#saveMapping').onclick=async()=>{
+    const specialty=$('#specialty').value.trim();
+    const requirement=$('#requirement').value.trim();
+    const keywords=chipValues.slice();
+    if(!specialty||!requirement||!keywords.length){alert('Please complete all fields and add at least one keyword.');return}
     if(editId){
-      await updateDoc(doc(db, 'mappings', editId), { specialty, requirement, keywords });
-      editId = null;
-      $('#saveMapping').textContent = 'Save mapping';
-    } else {
-      await addDoc(mappingsRef, { specialty, requirement, keywords });
+      await updateDoc(doc(db,'mappings',editId),{specialty,requirement,keywords});
+      editId=null; $('#saveMapping').textContent='Save mapping'; $('#editHint').textContent='';
+    }else{
+      await addDoc(mappingsRef,{specialty,requirement,keywords});
     }
-    $('#keywords').value = '';
+    chipValues=[]; renderChips();
   };
 
-  onSnapshot(mappingsRef, snap => {
-    mappings = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  $('#resetForm').onclick=()=>{
+    editId=null; $('#specialty').selectedIndex=0; $('#requirement').selectedIndex=0;
+    chipValues=[]; renderChips(); $('#saveMapping').textContent='Save mapping'; $('#editHint').textContent='';
+  };
+
+  onSnapshot(mappingsRef,snap=>{
+    mappings=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderTable();
   });
 
   function runMatch(){
-    const raw = $('#inputText').value;
-    if(!raw.trim()) return alert('Paste some text first');
-    const text = raw.toLowerCase();
-    const results = [];
-    const hits = new Set();
-    mappings.forEach(m => {
-      const found = m.keywords.filter(k => text.includes(k.toLowerCase()));
-      if(found.length) {
-        results.push({ specialty: m.specialty, requirement: m.requirement, hits: found });
-        found.forEach(f => hits.add(f.toLowerCase()));
-      }
+    const raw=$('#inputText').value;
+    if(!raw.trim()){alert('Paste some text first');return}
+    const text=raw;
+    const findings=[]; const hits=new Set();
+    mappings.forEach(m=>{
+      const local=[];
+      (m.keywords||[]).forEach(k=>{
+        const re=buildPluralRegex(String(k));
+        if(re.test(text)){local.push(k);hits.add(k);re.lastIndex=0}
+      });
+      if(local.length) findings.push({specialty:m.specialty,requirement:m.requirement,hits:local});
     });
-    if(!results.length){
-      $('#results').innerHTML = '<span style="color:#6b7280">No requirements inferred.</span>';
-    } else {
-      $('#results').innerHTML = results.map(r => `<div><strong>${r.specialty}</strong> — ${r.requirement} (keywords: ${r.hits.join(', ')})</div>`).join('');
-    }
-    let highlighted = raw;
-    hits.forEach(k => {
-      highlighted = highlighted.replace(new RegExp(k, 'gi'), m => `<mark>${m}</mark>`);
+    findings.sort((a,b)=>a.specialty.localeCompare(b.specialty)||a.requirement.localeCompare(b.requirement));
+    let highlighted=text;
+    Array.from(hits).sort((a,b)=>b.length-a.length).forEach(k=>{
+      const re=buildPluralRegex(k);
+      highlighted=highlighted.replace(re,m=>`<mark>${m}</mark>`);
     });
-    $('#highlight').innerHTML = highlighted;
+    $('#highlight').innerHTML=highlighted||'No text yet.';
+    $('#matchCount').textContent=`${findings.length} match${findings.length===1?'':'es'}`;
+    if(!findings.length){$('#results').innerHTML='<span style="opacity:.85">No requirements inferred.</span>';return}
+    $('#results').innerHTML=findings.map(r=>{
+      const h=r.hits.map(x=>`<span class="pill">${x}</span>`).join(' ');
+      return `<div style="margin-bottom:10px"><strong>${r.specialty}</strong> — ${r.requirement}<div class="row" style="margin-top:6px">${h}</div></div>`;
+    }).join('');
   }
 
-  $('#runMatch').onclick = runMatch;
-  document.querySelectorAll('nav button[data-tab]').forEach(btn => btn.onclick = () => {
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  $('#runMatch').onclick=runMatch;
+  $('#clearText').onclick=()=>{$('#inputText').value='';$('#highlight').textContent='No text yet.';$('#results').textContent='Nothing matched yet.';$('#matchCount').textContent='0 matches'};
+
+  $$('.side .tab').forEach(btn=>btn.onclick=()=>{
+    $$('.side .tab').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    $('#builderTab').style.display = btn.dataset.tab === 'builder' ? 'block' : 'none';
-    $('#matcherTab').style.display = btn.dataset.tab === 'matcher' ? 'block' : 'none';
+    $('#builderTab').style.display=btn.dataset.tab==='builderTab'?'grid':'none';
+    $('#matcherTab').style.display=btn.dataset.tab==='matcherTab'?'grid':'none';
   });
 </script>
 </body>
