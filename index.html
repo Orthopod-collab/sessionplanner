@@ -20,24 +20,6 @@
   table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9rem; }
   th, td { border-bottom: 1px solid #e5e7eb; padding: 8px; text-align: left; vertical-align: top; }
   mark { background: #fde047; padding: 0 2px; border-radius: 2px; }
-  .dropzone {
-    border: 2px dashed #cbd5e1;
-    background: #f8fafc;
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 10px;
-    text-align: center;
-    color: #475569;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .dropzone.dragover { background: #eef2ff; border-color: #6366f1; color: #1e293b; }
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .row > * { margin-top: 8px; }
-  .pill { font-size: 0.8rem; padding: 6px 8px; background: #eef2ff; border-radius: 999px; }
-  .progress { height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-top: 8px; }
-  .progress > div { height: 100%; width: 0%; background: #2563eb; transition: width 0.2s; }
-  .preview { max-width: 100%; margin-top: 8px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-  .small { font-size: 0.85rem; color: #64748b; }
   @media (max-width: 700px) {
     .app { flex-direction: column; }
     nav { flex-direction: row; overflow-x: auto; }
@@ -73,43 +55,15 @@
 
     <section id="matcherTab" style="display:none">
       <label>Paste description
-        <textarea id="inputText" placeholder="Type, dictate, or parse a screenshot…"></textarea>
+        <textarea id="inputText" placeholder="Type or paste a description…"></textarea>
       </label>
-      <div class="row">
-        <button class="btn" id="micBtn" type="button" title="Start/stop dictation">🎤 Start Dictation</button>
-        <span id="micStatus" class="small">Idle</span>
-        <select id="micLang" title="Recognition language" style="margin-left:auto; padding:8px; border-radius:6px; border:1px solid #d1d5db;">
-          <option value="en-GB" selected>English (UK)</option>
-          <option value="en-US">English (US)</option>
-          <option value="en-AU">English (AU)</option>
-          <option value="en-CA">English (CA)</option>
-          <option value="en-IN">English (India)</option>
-        </select>
-      </div>
-      <div id="interimBox" style="margin-top:6px; color:#374151; font-style:italic;"></div>
-      <div class="dropzone" id="dropzone">
-        <div><strong>Screenshot parser (OCR)</strong></div>
-        <div class="small">Drop an image here, paste (Ctrl/Cmd+V), or <label for="ocrFile" style="text-decoration:underline; cursor:pointer;">choose a file</label>.</div>
-        <input id="ocrFile" type="file" accept="image/*" capture="environment" style="display:none" />
-        <div class="row">
-          <span class="pill">OCR: English</span>
-          <label class="row small" style="gap:6px;">
-            <input type="checkbox" id="preprocess" />
-            Enhance image (B/W + contrast)
-          </label>
-          <button class="btn" id="runOcr" type="button">Parse screenshot</button>
-        </div>
-        <div class="progress" id="ocrProgress" aria-hidden="true"><div></div></div>
-        <img id="preview" class="preview" alt="" />
-        <div id="ocrStatus" class="small"></div>
-      </div>
       <button class="btn" id="runMatch" style="margin-top:12px;">Match requirements</button>
       <div id="highlight" style="margin-top:10px;color:#374151">No text yet.</div>
       <div id="results" style="margin-top:10px;color:#374151">Nothing matched yet.</div>
     </section>
   </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -197,21 +151,26 @@
     const original = text;
     const srcTokens = tokenize(original);
     if (!srcTokens.length || keywordPhrases.length === 0) return text;
+
     const replacements = [];
     const maxSrcIndex = srcTokens.length - 1;
+
     const kwByLen = {};
     keywordTokens.forEach((toks, idx) => {
       const L = toks.length;
       kwByLen[L] ||= [];
       kwByLen[L].push({ toks, phrase: keywordPhrases[idx] });
     });
+
     for (const L of Array.from(keywordTokenLengths).sort((a,b)=>a-b)) {
       if (L > srcTokens.length) continue;
       const candidates = kwByLen[L] || [];
       if (!candidates.length) continue;
+
       for (let i = 0; i + L - 1 <= maxSrcIndex; i++) {
         const windowTokens = srcTokens.slice(i, i + L);
         const windowText = detokenize(windowTokens);
+
         let best = null;
         for (const { toks, phrase } of candidates) {
           const kwText = detokenize(toks);
@@ -219,11 +178,13 @@
           const norm = dist / Math.max(kwText.length, 1);
           if (!best || norm < best.norm) best = { norm, phrase, kwText };
         }
+
         if (best && best.norm > 0 && best.norm <= 0.34 && windowText !== best.kwText) {
           replacements.push({ start: i, end: i + L, replacement: best.phrase, score: best.norm });
         }
       }
     }
+
     replacements.sort((a, b) => a.score - b.score || (b.end - b.start) - (a.end - a.start));
     const chosen = [];
     let occupied = Array(srcTokens.length).fill(false);
@@ -235,7 +196,9 @@
         for (let k = r.start; k < r.end; k++) occupied[k] = true;
       }
     }
+
     if (!chosen.length) return text;
+
     const out = [];
     let idx = 0;
     const byStart = {};
@@ -250,6 +213,7 @@
         idx++;
       }
     }
+
     let corrected = out.join(' ');
     corrected = corrected.replace(/\s+([.,;:!?])/g, '$1');
     return corrected;
@@ -299,11 +263,14 @@
   function runMatch(){
     const raw = $('#inputText').value;
     if(!raw.trim()) return alert('Paste some text first');
+
     const corrected = autoCorrectAgainstKeywords(raw);
     if (corrected !== raw) $('#inputText').value = corrected;
+
     const text = corrected.toLowerCase();
     const results = [];
     const hits = new Set();
+
     mappings.forEach(m => {
       const found = (m.keywords || []).filter(k => text.includes(String(k).toLowerCase()));
       if(found.length) {
@@ -311,11 +278,13 @@
         found.forEach(f => hits.add(String(f).toLowerCase()));
       }
     });
+
     if(!results.length){
       $('#results').innerHTML = '<span style="color:#6b7280">No requirements inferred.</span>';
     } else {
       $('#results').innerHTML = results.map(r => `<div><strong>${r.specialty}</strong> — ${r.requirement} (keywords: ${r.hits.join(', ')})</div>`).join('');
     }
+
     let highlighted = corrected;
     hits.forEach(k => {
       highlighted = highlighted.replace(new RegExp(escapeRegExp(k), 'gi'), m => `<mark>${m}</mark>`);
@@ -324,239 +293,6 @@
   }
 
   $('#runMatch').onclick = runMatch;
-
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let recognition = null;
-  let isListening = false;
-
-  const micBtn = $('#micBtn');
-  const micStatus = $('#micStatus');
-  const micLang = $('#micLang');
-  const interimBox = $('#interimBox');
-  const inputText = $('#inputText');
-
-  function setMicUI({ listening, status }) {
-    isListening = listening;
-    micBtn.textContent = listening ? '⏹ Stop Dictation' : '🎤 Start Dictation';
-    micBtn.style.background = listening ? '#dc2626' : '#2563eb';
-    micStatus.textContent = status || (listening ? 'Listening…' : 'Idle');
-  }
-
-  function initRecognition() {
-    if (!SpeechRecognition) {
-      setMicUI({ listening: false, status: 'Speech recognition not supported in this browser.' });
-      micBtn.disabled = true;
-      return;
-    }
-    recognition = new SpeechRecognition();
-    recognition.interimResults = true;
-    recognition.continuous = true;
-    recognition.lang = micLang.value;
-    recognition.onstart = () => {
-      setMicUI({ listening: true, status: 'Listening…' });
-      interimBox.textContent = '';
-    };
-    recognition.onerror = (e) => {
-      setMicUI({ listening: false, status: `Error: ${e.error}` });
-    };
-    recognition.onend = () => {
-      if (isListening) {
-        try { recognition.start(); } catch {}
-        return;
-      }
-      setMicUI({ listening: false, status: 'Stopped' });
-      interimBox.textContent = '';
-      if (inputText.value.trim()) runMatch();
-    };
-    recognition.onresult = (event) => {
-      let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const res = event.results[i];
-        if (res.isFinal) {
-          const finalChunk = res[0].transcript.trim();
-          if (finalChunk) {
-            const base = inputText.value.trim();
-            const appended = base ? (base + (base.endsWith(' ') ? '' : ' ') + finalChunk + ' ') : (finalChunk + ' ');
-            const corrected = autoCorrectAgainstKeywords(appended);
-            inputText.value = corrected;
-          }
-        } else {
-          interim += res[0].transcript;
-        }
-      }
-      interimBox.textContent = interim ? `…${interim}` : '';
-    };
-  }
-
-  micLang?.addEventListener('change', () => {
-    if (!recognition) return;
-    const wasListening = isListening;
-    try { recognition.stop(); } catch {}
-    setMicUI({ listening: false, status: 'Changing language…' });
-    initRecognition();
-    if (wasListening) {
-      try { recognition.start(); } catch {}
-      setMicUI({ listening: true, status: 'Listening…' });
-    } else {
-      setMicUI({ listening: false, status: 'Idle' });
-    }
-  });
-
-  micBtn?.addEventListener('click', () => {
-    if (!recognition) initRecognition();
-    if (!SpeechRecognition || !recognition) return;
-    if (!isListening) {
-      try {
-        recognition.lang = micLang.value;
-        recognition.start();
-        setMicUI({ listening: true, status: 'Listening…' });
-      } catch (e) {
-        setMicUI({ listening: false, status: `Couldn’t start: ${e.message}` });
-      }
-    } else {
-      try {
-        setMicUI({ listening: false, status: 'Stopping…' });
-        recognition.stop();
-      } catch (e) {
-        setMicUI({ listening: false, status: `Error: ${e.message}` });
-      }
-    }
-  });
-
-  initRecognition();
-
-  const dropzone = $('#dropzone');
-  const ocrFile = $('#ocrFile');
-  const runOcrBtn = $('#runOcr');
-  const ocrProgress = $('#ocrProgress');
-  const ocrBar = ocrProgress.querySelector('div');
-  const ocrStatus = $('#ocrStatus');
-  const preview = $('#preview');
-  const preprocess = $('#preprocess');
-
-  let selectedImageFile = null;
-
-  function setOcrStatus(msg) { ocrStatus.textContent = msg || ''; }
-  function setProgress(p) {
-    ocrProgress.setAttribute('aria-hidden', 'false');
-    ocrBar.style.width = `${Math.max(0, Math.min(100, p))}%`;
-    if (p >= 100) setTimeout(() => { ocrBar.style.width = '0%'; ocrProgress.setAttribute('aria-hidden', 'true'); }, 800);
-  }
-
-  function showPreview(file) {
-    const url = URL.createObjectURL(file);
-    preview.src = url;
-  }
-
-  async function preprocessImage(file) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const maxW = 2000;
-        const scale = Math.min(1, maxW / img.width);
-        const w = Math.round(img.width * scale);
-        const h = Math.round(img.height * scale);
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        if (preprocess.checked) {
-          const imgData = ctx.getImageData(0, 0, w, h);
-          const data = imgData.data;
-          const contrast = 1.2;
-          const intercept = 128 * (1 - contrast);
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i+1], b = data[i+2];
-            let gray = 0.299*r + 0.587*g + 0.114*b;
-            gray = gray * contrast + intercept;
-            gray = Math.max(0, Math.min(255, gray));
-            data[i] = data[i+1] = data[i+2] = gray;
-          }
-          ctx.putImageData(imgData, 0, 0);
-        }
-        canvas.toBlob((blob) => resolve(new File([blob], 'preprocessed.png', { type: 'image/png' })), 'image/png', 1.0);
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  }
-
-  async function doOCR(file) {
-    if (!window.Tesseract) {
-      alert('OCR library failed to load. Check your network connection.');
-      return;
-    }
-    setOcrStatus('Preparing image…');
-    const workFile = await preprocessImage(file);
-    setOcrStatus('Running OCR…');
-    const { createWorker } = Tesseract;
-    const worker = await createWorker('eng', 1, {
-      logger: m => {
-        if (m.status === 'recognizing text' && m.progress != null) {
-          setProgress(Math.round(m.progress * 100));
-        }
-      }
-    });
-    const result = await worker.recognize(workFile);
-    await worker.terminate();
-    const text = (result?.data?.text || '').trim();
-    if (!text) {
-      setOcrStatus('No text detected. Try the “Enhance image” option.');
-      return;
-    }
-    const base = inputText.value.trim();
-    const combined = base ? (base + '\n\n' + text) : text;
-    const corrected = autoCorrectAgainstKeywords(combined);
-    inputText.value = corrected;
-    setOcrStatus('OCR complete.');
-    runMatch();
-  }
-
-  function acceptFiles(files) {
-    const f = files && files[0];
-    if (!f) return;
-    if (!f.type.startsWith('image/')) { alert('Please drop an image file.'); return; }
-    selectedImageFile = f;
-    showPreview(f);
-    setOcrStatus(`Selected: ${f.name} (${Math.round(f.size/1024)} KB)`);
-  }
-
-  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
-  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-  dropzone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('dragover');
-    if (e.dataTransfer.files?.length) acceptFiles(e.dataTransfer.files);
-  });
-
-  dropzone.addEventListener('click', (e) => {
-    if (e.target === dropzone) ocrFile.click();
-  });
-  ocrFile.addEventListener('change', (e) => acceptFiles(e.target.files));
-
-  window.addEventListener('paste', (e) => {
-    if (!$('#matcherTab') || $('#matcherTab').style.display === 'none') return;
-    const items = e.clipboardData?.items || [];
-    for (const it of items) {
-      if (it.type?.startsWith('image/')) {
-        const f = it.getAsFile();
-        if (f) {
-          selectedImageFile = f;
-          showPreview(f);
-          setOcrStatus(`Pasted image (${Math.round(f.size/1024)} KB)`);
-          break;
-        }
-      }
-    }
-  });
-
-  runOcrBtn.addEventListener('click', async () => {
-    if (!selectedImageFile) {
-      alert('Drop/paste/choose a screenshot first.');
-      return;
-    }
-    setProgress(0);
-    await doOCR(selectedImageFile);
-  });
 
   document.querySelectorAll('nav button[data-tab]').forEach(btn => btn.onclick = () => {
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
